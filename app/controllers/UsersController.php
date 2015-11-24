@@ -8,9 +8,12 @@ class UsersController extends BaseController {
 	 * @var User
 	 */
 	protected $user;
+	
+	protected $medicalRecord;
 
-	public function __construct(User $user)
+	public function __construct(MedicalRecord $medicalRecord,User $user)
 	{
+		$this->medicalRecord = $medicalRecord;
 		$this->user = $user;
 	}
 
@@ -34,30 +37,6 @@ class UsersController extends BaseController {
 	public function create()
 	{
 		return View::make('users.create');
-	}
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @return Response
-	 */
-	public function store()
-	{
-		$input = Input::all();
-		$validation = Validator::make($input, User::$rules);
-
-		if ($validation->passes())
-		{	
-			$input['password'] = Hash::make($input['password']);
-			$this->user->create($input);
-
-			return Redirect::route('users.index');
-		}
-
-		return Redirect::route('users.create')
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
 	}
 
 	/**

@@ -8,14 +8,18 @@ class AuthController extends BaseController {
 	 * @var User
 	 */
 	protected $user;
+	protected $medicalrecord;
+	protected $patientinformation;
 
-	public function __construct(User $user)
+	public function __construct(User $user,Medicalrecord $medicalrecord,Patientinformation $patientinformation)
 	{
+		$this->medicalrecord = $medicalrecord;
+		$this->patientinformation = $patientinformation;
 		$this->user = $user;
 	}
 
 
-	/**
+	/*
 	 * Show the form for creating a new resource.
 	 *
 	 * @return Response
@@ -38,8 +42,11 @@ class AuthController extends BaseController {
 		if ($validation->passes())
 		{	
 			$input['password'] = Hash::make($input['password']);
-			$this->user->create($input);
-
+			
+			$result = $this->user->create($input);
+			$data = ['patient_id'=>$result->id];
+			$data['patient_information_id'] = $this->patientinformation->create($data)->id;
+			$this->medicalrecord->create($data);
 			return Redirect::route('users.index');
 		}
 
