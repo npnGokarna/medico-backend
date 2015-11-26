@@ -13,9 +13,9 @@
 
 Route::get('/','AuthController@checkAndRedirect');
 
-Route::group(['before'=>'auth'],function(){
-
 	Route::resource('users', 'UsersController');
+
+Route::group(['before'=>'auth'],function(){
 
 	Route::resource('patientinformations', 'PatientinformationsController');
 

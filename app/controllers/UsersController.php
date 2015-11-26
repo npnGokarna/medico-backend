@@ -11,7 +11,7 @@ class UsersController extends BaseController {
 	
 	protected $medicalRecord;
 
-	public function __construct(MedicalRecord $medicalRecord,User $user)
+	public function __construct(Medicalrecord $medicalRecord,User $user)
 	{
 		$this->medicalRecord = $medicalRecord;
 		$this->user = $user;
@@ -47,9 +47,10 @@ class UsersController extends BaseController {
 	 */
 	public function show($id)
 	{
+		error_log("calle");
 		$user = $this->user->findOrFail($id);
-
-		return View::make('users.show', compact('user'));
+		return $user;
+		//return View::make('users.show', compact('user'));
 	}
 
 	/**
