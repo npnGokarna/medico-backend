@@ -38,7 +38,8 @@ class AuthController extends BaseController {
 	{
 		$input = Input::all();
 		$validation = Validator::make($input, User::$rules);
-
+	//	dd($input);
+		 Log::info($input);
 		if ($validation->passes())
 		{	
 			$input['password'] = Hash::make($input['password']);
@@ -47,13 +48,28 @@ class AuthController extends BaseController {
 			$data = ['patient_id'=>$result->id];
 			$data['patient_information_id'] = $this->patientinformation->create($data)->id;
 			$this->medicalrecord->create($data);
-			return Redirect::route('users.index');
+		//	return Redirect::route('users.index');
+			$data['message'] = "User successfully registered. Please login to continue.";
+			$data['error'] = false;
+			return $data;
 		}
+		$mess = "";
+		$messages = $validation->messages();
+		foreach ($messages->all() as $message)
+		{
+		    $mess .= $message; 
+		}
+		$output = array('error' => true, 
+			'message' => $mess
+			);
+		return  $output;
 
+		/*
 		return Redirect::route('users.create')
 			->withInput()
 			->withErrors($validation)
 			->with('message', 'There were validation errors.');
+			*/
 	}
 
 	public function getlogin()
@@ -66,6 +82,9 @@ class AuthController extends BaseController {
             'username' => Input::get('username'),
             'password' => Input::get('password')
         );
+
+        Log::info($userdata);
+
  		if(Input::get('persist') == 'on')
 		   $isAuth = Auth::attempt($userdata, true);
 		else
@@ -76,18 +95,31 @@ class AuthController extends BaseController {
         if($isAuth) 
         {
             // we are now logged in, go to admin
-         	return $this->afterlogin();   
+         	return $this->afterlogin($userdata['username']);   
         }
         else
         {
-            return Redirect::to('login')->with('message', 'Not valid login credentials');;
+        	$userdata = array(
+			'loggedin' => false,
+            'message' => "Invalid credentials"
+        	);	
+
+        	return Response::json($userdata);
+
+//            return Redirect::to('login')->with('message', 'Not valid login credentials');;
         }
 	}
 
-	public function afterlogin()
+	public function afterlogin($username)
 	{
-		return Redirect::to('patientdashboard');
-		
+		$usr = User::where('username',$username)->get()->first();
+		$userdata = array(
+			'loggedin' => true,
+			'id' => $usr->id,
+            'username' => $usr->username,
+            'usertype' => $usr->usertype
+        );
+		return $userdata;		
 	}
 
 	public function logout()
@@ -113,7 +145,52 @@ class AuthController extends BaseController {
 
 	public function resetpassword()
 	{
-		$email = Input::get('email');
-		return Redirect::to('forgotpassword')->with('message','Please check your email. Password sent.');
+		$email = trim(Input::get('email'));
+		$usr = User::where('email',$email)->get()->first();
+		if($usr){
+			$fullname = $usr->fullname;
+			
+			$randomString = substr(str_shuffle("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 1) . substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 5);
+			$usr->password = Hash::make($randomString);
+			$usr->save();
+			
+			$val = array(
+				'name' => $fullname,
+				'username' => $usr->username,
+				'password' => $randomString,
+				'email' => $email
+			);
+
+			Mail::send('emails.forgotpassword',$val, function($message) use ($val){
+	        	$message->from('support@medico.com', 'Medico Support');
+				$message->to($val['email'],$val['name'])->subject('New Password for Medico.');
+	    	});	
+			$userdata = array(
+			'message' => 'Password successfully reset. Please check your email. '.$email.' for details',
+	    	);
+		}
+		else{
+			$userdata = array(
+			'message' => 'User with email: '.$email.' not found. Please make sure the email address you had provided is correct',
+	    	);
+		}
+		
+		return $userdata;
+		
+	}
+
+	public function updatepassword($id)
+	{
+		$password = Input::get('newpassword1');
+		$usr = User::where('id',$id)->get()->first();
+		if($usr){
+			$usr->password = Hash::make($password);
+			$usr->save();
+		}
+		$userdata = array(
+			'message' => 'Password successfully updated.'
+        );
+		return $userdata;	
+		
 	}
 }

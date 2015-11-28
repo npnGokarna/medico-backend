@@ -110,4 +110,16 @@ class UsersController extends BaseController {
 		return Redirect::route('users.index');
 	}
 
+	public function getAllDoctors()
+	{
+		$doctors = [];
+		$users = User::where('usertype','Doctor')->get();
+		foreach ($users as $key) {
+			$dta['id'] = $key->id;
+			$dta['name'] = $key->username;
+			array_push($doctors,$dta);
+		}
+		$data['result'] = $doctors;
+		return $data;
+	}
 }

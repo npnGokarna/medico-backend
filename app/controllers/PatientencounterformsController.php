@@ -68,8 +68,8 @@ class PatientencounterformsController extends BaseController {
 	public function show($id)
 	{
 		$patientencounterform = $this->patientencounterform->findOrFail($id);
-
-		return View::make('patientencounterforms.show', compact('patientencounterform'));
+		return $patientencounterform;
+		//return View::make('patientencounterforms.show', compact('patientencounterform'));
 	}
 
 	/**

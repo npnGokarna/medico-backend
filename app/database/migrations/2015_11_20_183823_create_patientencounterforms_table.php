@@ -14,10 +14,15 @@ class CreatePatientencounterformsTable extends Migration {
 	{
 		Schema::create('patientencounterforms', function(Blueprint $table) {
 			$table->increments('id');
-			$table->string('appointment_id');
+
+			$table->integer('appointment_id')->unsigned()->unique();
+			$table->foreign('appointment_id')->references('id')->on('appointments');
+
+			//$table->string('appointment_id');
 			$table->string('chief_complaint');
-			$table->string('summary_of_examination');
-			$table->string('assessment_plan');
+			$table->string('summary_of_illness');
+			$table->string('physical_examination');
+			$table->string('assessment');
 			$table->timestamps();
 		});
 	}
@@ -30,6 +35,7 @@ class CreatePatientencounterformsTable extends Migration {
 	 */
 	public function down()
 	{
+		DB::statement('SET FOREIGN_KEY_CHECKS = 0');
 		Schema::drop('patientencounterforms');
 	}
 

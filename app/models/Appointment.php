@@ -8,8 +8,22 @@ class Appointment extends Eloquent {
 		'appointment_status' => 'required',
 		'doctor_id' => 'required',
 		'patient_id' => 'required',
-		'doctor_encounter_form' => 'required',
-		'doctor_order_form' => 'required',
-		'medical_report' => 'required'
 	);
+
+	public function Patientencounterform()
+	{
+		return $this->belongsTo('Patientencounterform','id','patient_encounter_form_id');
+	}
+
+	public function Patient()
+	{
+		return $this->hasOne('User', 'id', 'patient_id');
+	}
+
+	public function Doctor()
+	{
+		return $this->hasOne('User', 'id', 'doctor_id');
+	}
+
+
 }

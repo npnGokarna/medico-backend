@@ -14,15 +14,18 @@
 Route::get('/','AuthController@checkAndRedirect');
 
 	Route::resource('users', 'UsersController');
-
-Route::group(['before'=>'auth'],function(){
+	Route::get('getalldoctors','UsersController@getAllDoctors');
+//Route::group(['before'=>'auth'],function(){
 
 	Route::resource('patientinformations', 'PatientinformationsController');
+	Route::get('checkforpatientinfo/{id}','PatientinformationsController@checkforpatientinfo');
 
 	Route::resource('medicalrecords', 'MedicalrecordsController');
 
 	Route::resource('appointments', 'AppointmentsController');
-
+	
+	Route::get('getuserappointment/{id}', 'AppointmentsController@getAppointmentsOfAUser');
+	
 	Route::resource('doctororders', 'DoctorordersController');
 
 	Route::resource('patientencounterforms', 'PatientencounterformsController');
@@ -32,7 +35,8 @@ Route::group(['before'=>'auth'],function(){
 	Route::get('patientdashboard',function(){
 		return View::make('patientdashboard');
 	});
-});
+
+//});
 
 // authentication functions
 
@@ -47,4 +51,7 @@ Route::get('register',['as'=>'register','uses'=>'AuthController@create']);
 
 Route::get('logout','AuthController@logout');
 Route::get('forgotpassword','AuthController@getForgotPassword');
+
 Route::post('resetpassword','AuthController@resetpassword');
+
+Route::post('updatepassword/{id}','AuthController@updatepassword');

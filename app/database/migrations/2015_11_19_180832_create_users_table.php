@@ -23,7 +23,7 @@ class CreateUsersTable extends Migration {
 			$table->string('ssn');
 			$table->string('gender');
 			$table->string('photourl');
-			$table->string('email');
+			$table->string('email')->unique();
 			$table->string('usertype');
 			$table->string('familydocotorname');
 			$table->string('remember_token');

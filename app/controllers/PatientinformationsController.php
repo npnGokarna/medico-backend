@@ -44,19 +44,23 @@ class PatientinformationsController extends BaseController {
 	public function store()
 	{
 		$input = Input::all();
+		Log::info($input);
 		$validation = Validator::make($input, Patientinformation::$rules);
-
+		$userdata = array(
+			'message' => 'Password successfully updated.'
+        );
 		if ($validation->passes())
 		{
 			$this->patientinformation->create($input);
+			$userdata['message'] = "Patient information saved.";
 
-			return Redirect::route('patientinformations.index');
+			//return Redirect::route('patientinformations.index');
 		}
-
-		return Redirect::route('patientinformations.create')
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
+		else{
+			$userdata['message'] = "Error while creating patient information. Please make sure all the input fields are filled up.";
+		}
+			
+		return $userdata;
 	}
 
 	/**
@@ -67,9 +71,16 @@ class PatientinformationsController extends BaseController {
 	 */
 	public function show($id)
 	{
-		$patientinformation = $this->patientinformation->findOrFail($id);
+		$patientinformation = $this->patientinformation->where('patient_id',$id)->get()->first();
+		if($patientinformation){
+			$patientinformation['error'] = false;
+		}
+		else{
+			$patientinformation['error'] = true;
+		}
+		return $patientinformation;
 
-		return View::make('patientinformations.show', compact('patientinformation'));
+		//return View::make('patientinformations.show', compact('patientinformation'));
 	}
 
 	/**
@@ -96,23 +107,37 @@ class PatientinformationsController extends BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update()
 	{
 		$input = array_except(Input::all(), '_method');
 		$validation = Validator::make($input, Patientinformation::$rules);
 
 		if ($validation->passes())
 		{
-			$patientinformation = $this->patientinformation->find($id);
-			$patientinformation->update($input);
-
-			return Redirect::route('patientinformations.show', $id);
+			$patientinformation = $this->patientinformation->where('patient_id',$input['patient_id'])->get()->first();
+			if(!$patientinformation){
+				$patientinformation->create($input);
+				$userdata['message'] = "Patient information created.";
+			}
+			else{
+				$patientinformation->update($input);
+				$userdata['message'] = "Patient information updated.";
+				
+			}
+			$userdata['error'] = false;
+			//return Redirect::route('patientinformations.index');
 		}
-
-		return Redirect::route('patientinformations.edit', $id)
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
+		else{
+			$mess = "";
+			$messages = $validation->messages();
+			foreach ($messages->all() as $message)
+			{
+			    $mess .= $message; 
+			}
+			$userdata['message'] = $mess;
+			$userdata['error'] = true;
+		}
+		return $userdata;
 	}
 
 	/**
@@ -128,4 +153,17 @@ class PatientinformationsController extends BaseController {
 		return Redirect::route('patientinformations.index');
 	}
 
+	public function checkforpatientinfo($id)
+	{
+		$patientinformation = $this->patientinformation->where('patient_id',$id)->get()->first();
+		$userdata = [];
+		if (empty($patientinformation['surgical_history']))
+		{
+			$userdata['isempty'] = true;
+		}
+		else{
+			$userdata['isempty'] = false;
+		}
+		return $userdata;
+	}
 }

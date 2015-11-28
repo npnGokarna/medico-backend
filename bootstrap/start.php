@@ -26,7 +26,7 @@ $app = new Illuminate\Foundation\Application;
 
 $env = $app->detectEnvironment(array(
 
-	'local' => array('shukbir-pc'),
+	'local' => array('shukbir-pc','gaurav-X555LA'),
 
 ));
 

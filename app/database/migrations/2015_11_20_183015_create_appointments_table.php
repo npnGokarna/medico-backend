@@ -16,9 +16,16 @@ class CreateAppointmentsTable extends Migration {
 			$table->increments('id');
 			$table->string('date');
 			$table->string('appointment_status');
-			$table->string('doctor_id');
-			$table->string('patient_id');
-			$table->string('doctor_encounter_form');
+			$table->integer('doctor_id')->unsigned();
+			$table->foreign('doctor_id')->references('id')->on('users');
+
+			$table->integer('patient_id')->unsigned();
+			$table->foreign('patient_id')->references('id')->on('users');
+
+		//	$table->string('doctor_encounter_form');
+			$table->integer('patient_encounter_form_id')->unsigned()->unique()->nullable();
+			$table->foreign('patient_encounter_form_id')->references('id')->on('patientencounterforms');
+
 			$table->string('doctor_order_form');
 			$table->string('medical_report');
 			$table->timestamps();
@@ -33,6 +40,7 @@ class CreateAppointmentsTable extends Migration {
 	 */
 	public function down()
 	{
+		DB::statement('SET FOREIGN_KEY_CHECKS = 0');
 		Schema::drop('appointments');
 	}
 

@@ -9,9 +9,11 @@ class AppointmentsController extends BaseController {
 	 */
 	protected $appointment;
 
-	public function __construct(Appointment $appointment)
+	protected $patientencounterform;
+	public function __construct(Appointment $appointment,Patientencounterform $patientencounterform)
 	{
 		$this->appointment = $appointment;
+		$this->patientencounterform = $patientencounterform;
 	}
 
 	/**
@@ -44,19 +46,47 @@ class AppointmentsController extends BaseController {
 	public function store()
 	{
 		$input = Input::all();
+		Log::info($input);
+		
+		$userdata['error'] = false;
+
+		
 		$validation = Validator::make($input, Appointment::$rules);
 
 		if ($validation->passes())
 		{
-			$this->appointment->create($input);
+			$data['date'] = $input['date'];
+			$data['doctor_id'] = $input['doctor_id'];
+			$data['patient_id'] = $input['patient_id'];
+			$data['patient_encounter_form_id'] = null;
+			$data['appointment_status'] = $input['appointment_status'];
 
-			return Redirect::route('appointments.index');
+			$dta['chief_complaint'] = $input['chief_complaint'];
+			$dta['summary_of_illness'] = $input['summary_of_illness'];
+			$dta['physical_examination'] = $input['physical_examination'];
+			$dta['assessment'] = $input['assessment'];
+
+			$app = $this->appointment->create($data);
+			$dta['appointment_id'] = $app->id;
+			$pef = $this->patientencounterform->create($dta);
+			
+			$app->patient_encounter_form_id = $pef->id;
+			$app->save();
+			$userdata['message'] = "Appointment successfully created.";
+			
 		}
+		else{
+			$mess = "";
+			$messages = $validation->messages();
+			foreach ($messages->all() as $message)
+			{
+			    $mess .= $message; 
+			}
+			$userdata['message'] = $mess;
+			$userdata['error'] = true;
+		}
+		return $userdata;	
 
-		return Redirect::route('appointments.create')
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
 	}
 
 	/**
@@ -123,9 +153,39 @@ class AppointmentsController extends BaseController {
 	 */
 	public function destroy($id)
 	{
-		$this->appointment->find($id)->delete();
-
-		return Redirect::route('appointments.index');
+		$app = $this->appointment->find($id);
+		if($app){
+			$userid = $app->patient_id;
+			$pfid = $app->patient_encounter_form_id;
+			$pef = $this->patientencounterform->find($pfid)->first();
+			DB::statement('SET FOREIGN_KEY_CHECKS = 0');
+			$pef->delete();
+			$app->delete();
+			DB::statement('SET FOREIGN_KEY_CHECKS = 1');
+			return $this->getAppointmentsOfAUser($userid);
+			/*
+			$userdata['message'] = "Appointment successfully deleted";	
+			$userdata['error'] = false;*/
+		}
+		else{
+			$userdata['error'] = true;
+			$userdata['message'] = "Appointment not found.";
+		}
+		return $userdata;
+		//return Redirect::route('appointments.index');
 	}
 
+	public function getAppointmentsOfAUser($userid)
+	{
+		$apps = $this->appointment->where('patient_id',$userid)->get();
+		if(!$apps->isEmpty()){
+			$userdata['data'] = $apps;	
+			$userdata['error'] = false;
+		}
+		else{
+			$userdata['error'] = true;
+			$userdata['message'] = "No appointment found.";
+		}
+		return $userdata;
+	}
 }
