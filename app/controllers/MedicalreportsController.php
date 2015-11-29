@@ -8,10 +8,11 @@ class MedicalreportsController extends BaseController {
 	 * @var Medicalreport
 	 */
 	protected $medicalreport;
-
-	public function __construct(Medicalreport $medicalreport)
+	protected $appointment;
+	public function __construct(Medicalreport $medicalreport,Appointment $appointment)
 	{
 		$this->medicalreport = $medicalreport;
+		$this->appointment = $appointment;
 	}
 
 	/**
@@ -48,15 +49,31 @@ class MedicalreportsController extends BaseController {
 
 		if ($validation->passes())
 		{
-			$this->medicalreport->create($input);
-
-			return Redirect::route('medicalreports.index');
+			$report = $this->medicalreport->where('appointment_id',$input['appointment_id'])->get()->first();
+			if($report){
+				$userdata['message'] = "Medical report successfully updated";
+				$report->update($input);
+			}
+			else{
+				$userdata['message'] = "Medical report successfully created";	
+				$report = $this->medicalreport->create($input);
+			}
+			$app = $this->appointment->find($input['appointment_id']);
+			$app->medical_report = $report->id;
+			$app->save();
+			$userdata['error'] = false;
 		}
-
-		return Redirect::route('medicalreports.create')
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
+		else{
+			$mess = "";
+			$messages = $validation->messages();
+			foreach ($messages->all() as $message)
+			{
+			    $mess .= $message; 
+			}
+			$userdata['message'] = $mess;
+			$userdata['error'] = true;
+		}
+		return $userdata;	
 	}
 
 	/**

@@ -16,7 +16,10 @@ class CreateMedicalreportsTable extends Migration {
 			$table->increments('id');
 			$table->string('appointment_id');
 			$table->string('bloodpressure');
-			$table->string('temperature');
+			$table->string('bodytemperature');
+			$table->string('heartbeat');
+			$table->string('bloodsugerlevel');
+			$table->string('airflow');
 			$table->timestamps();
 		});
 	}

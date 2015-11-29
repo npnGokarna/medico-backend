@@ -10,9 +10,11 @@ class AppointmentsController extends BaseController {
 	protected $appointment;
 
 	protected $patientencounterform;
-	public function __construct(Appointment $appointment,Patientencounterform $patientencounterform)
+	protected $user;
+	public function __construct(User $user,Appointment $appointment,Patientencounterform $patientencounterform)
 	{
 		$this->appointment = $appointment;
+		$this->user = $user;
 		$this->patientencounterform = $patientencounterform;
 	}
 
@@ -97,9 +99,29 @@ class AppointmentsController extends BaseController {
 	 */
 	public function show($id)
 	{
-		$appointment = $this->appointment->findOrFail($id);
+		$appointment = $this->appointment->find($id);
+		if($appointment)
+		{
+			$pef = $this->patientencounterform->find($appointment->patient_encounter_form_id);
+			$usr = $this->user->find($appointment->doctor_id);
+			$userdata['date'] = $appointment->date;
+			$userdata['appointment_id'] = $appointment->id;
+			$userdata['doctor'] = $usr->fullname;
+			$userdata['appointment_status'] = $appointment->appointment_status;
+			$userdata['chief_complaint'] = $pef->chief_complaint;
+			$userdata['summary_of_illness'] = $pef->summary_of_illness;
+			$userdata['physical_examination'] = $pef->physical_examination;
+			$userdata['assessment'] = $pef->assessment;
 
-		return View::make('appointments.show', compact('appointment'));
+			$userdata['error'] = false;
+			//$userdata['data'] = $data;
+		}
+		else{
+			$userdata['error'] = true;
+			$userdata['message'] = "Appointment not found";
+			
+		}
+		return $userdata;
 	}
 
 	/**
@@ -175,11 +197,37 @@ class AppointmentsController extends BaseController {
 		//return Redirect::route('appointments.index');
 	}
 
+	public function placeDoctor($apps){
+		$data = [];
+		foreach ($apps as $app) {
+			$usr = $this->user->find($app->doctor_id);
+			$usr1 = $this->user->find($app->patient_id);
+			
+			//dd($app->doctor_id);
+			//dd($usr);
+			$app->doctor_id = $usr->fullname;
+			$app->patient_id = $usr1->fullname;
+			array_push($data,$app);
+		}
+		return $data;
+	}
 	public function getAppointmentsOfAUser($userid)
 	{
 		$apps = $this->appointment->where('patient_id',$userid)->get();
+		return $this->getAppointments($apps);	
+	}
+
+	public function getAppointmentsOfDoctor($userid)
+	{
+		$apps = $this->appointment->where('doctor_id',$userid)->get();
+		return $this->getAppointments($apps);	
+	}
+
+	public function getAppointments($apps)
+	{
 		if(!$apps->isEmpty()){
-			$userdata['data'] = $apps;	
+			//dd();
+			$userdata['data'] = $this->placeDoctor($apps);	
 			$userdata['error'] = false;
 		}
 		else{
@@ -188,4 +236,6 @@ class AppointmentsController extends BaseController {
 		}
 		return $userdata;
 	}
+
+
 }

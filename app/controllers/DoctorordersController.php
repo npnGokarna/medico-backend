@@ -9,9 +9,11 @@ class DoctorordersController extends BaseController {
 	 */
 	protected $doctororder;
 
-	public function __construct(Doctororder $doctororder)
+	protected $appointment;
+	public function __construct(Doctororder $doctororder,Appointment $appointment)
 	{
 		$this->doctororder = $doctororder;
+		$this->appointment = $appointment;
 	}
 
 	/**
@@ -48,15 +50,33 @@ class DoctorordersController extends BaseController {
 
 		if ($validation->passes())
 		{
-			$this->doctororder->create($input);
-
-			return Redirect::route('doctororders.index');
+			$do = $this->doctororder->where('appointment_id',$input['appointment_id'])->get()->first();
+			
+			if($do){
+				$do->update($input);
+				$userdata['message'] = "Doctor order successfully updated";
+			}
+			else{
+				$do = $this->doctororder->create($input);
+				$userdata['message'] = "Doctor order successfully created";
+			}
+			$app = $this->appointment->find($input['appointment_id']);
+			$app->doctor_order_form = $do->id;
+			$app->save();
+		
+			$userdata['error'] = false;
 		}
-
-		return Redirect::route('doctororders.create')
-			->withInput()
-			->withErrors($validation)
-			->with('message', 'There were validation errors.');
+		else{
+			$mess = "";
+			$messages = $validation->messages();
+			foreach ($messages->all() as $message)
+			{
+			    $mess .= $message; 
+			}
+			$userdata['message'] = $mess;
+			$userdata['error'] = true;
+		}
+		return $userdata;	
 	}
 
 	/**
