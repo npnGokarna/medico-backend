@@ -1,4 +1,5 @@
 <?php
+use Illuminate\Database\Eloquent\Collection;
 
 class UsersController extends BaseController {
 
@@ -121,5 +122,36 @@ class UsersController extends BaseController {
 		}
 		$data['result'] = $doctors;
 		return $data;
+	}
+
+	public function searchPatient(){
+		$input = Input::all();
+		$patient_name = trim($input['patient_name']);
+		$patient_ssn = trim($input['patient_ssn']);
+		$medical_record_id = trim($input['medical_record_id']);
+		$patient_phone = trim($input['patient_phone']);
+		$users = Collection::make([]);
+		if(!empty($patient_ssn)){
+			$users = $this->user->where('ssn',$patient_ssn)->get();
+		}
+		if(!empty($medical_record_id) && $users->isEmpty()){
+			$medicalrecords = $this->medicalRecord->where('id',$medical_record_id)->get()->first();
+			$users = $this->user->where('id',$medicalrecords->patient_id)->get();	
+		}
+		if(!empty($patient_name) && $users->isEmpty()){
+			$users = $this->user->where('fullname', 'LIKE', '%'.$patient_name.'%')->get();
+		}
+		if(!empty($patient_phone) && $users->isEmpty()){
+			$users = $this->user->where('phone', 'LIKE', '%'.$patient_phone.'%')->get();	
+		}
+		if($users!=null && !$users->isEmpty()){
+			$userdata['error'] = false;
+			$userdata['data'] = $users;
+		}
+		else{
+			$userdata['error'] = true;
+			$userdata['message'] = "Users with given search criteria not found";	
+		}
+		return $userdata;
 	}
 }

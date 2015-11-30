@@ -21,8 +21,6 @@ class CreatePatientencounterformsTable extends Migration {
 			//$table->string('appointment_id');
 			$table->string('chief_complaint');
 			$table->string('summary_of_illness');
-			$table->string('physical_examination');
-			$table->string('assessment');
 			$table->timestamps();
 		});
 	}

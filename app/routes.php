@@ -15,6 +15,8 @@ Route::get('/','AuthController@checkAndRedirect');
 
 	Route::resource('users', 'UsersController');
 	Route::get('getalldoctors','UsersController@getAllDoctors');
+	
+	Route::post('search','UsersController@searchPatient');
 //Route::group(['before'=>'auth'],function(){
 
 	Route::resource('patientinformations', 'PatientinformationsController');

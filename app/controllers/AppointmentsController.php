@@ -65,9 +65,7 @@ class AppointmentsController extends BaseController {
 
 			$dta['chief_complaint'] = $input['chief_complaint'];
 			$dta['summary_of_illness'] = $input['summary_of_illness'];
-			$dta['physical_examination'] = $input['physical_examination'];
-			$dta['assessment'] = $input['assessment'];
-
+			
 			$app = $this->appointment->create($data);
 			$dta['appointment_id'] = $app->id;
 			$pef = $this->patientencounterform->create($dta);
@@ -110,9 +108,7 @@ class AppointmentsController extends BaseController {
 			$userdata['appointment_status'] = $appointment->appointment_status;
 			$userdata['chief_complaint'] = $pef->chief_complaint;
 			$userdata['summary_of_illness'] = $pef->summary_of_illness;
-			$userdata['physical_examination'] = $pef->physical_examination;
-			$userdata['assessment'] = $pef->assessment;
-
+		
 			$userdata['error'] = false;
 			//$userdata['data'] = $data;
 		}
@@ -179,9 +175,11 @@ class AppointmentsController extends BaseController {
 		if($app){
 			$userid = $app->patient_id;
 			$pfid = $app->patient_encounter_form_id;
-			$pef = $this->patientencounterform->find($pfid)->first();
+			$pef = $this->patientencounterform->find($pfid);
 			DB::statement('SET FOREIGN_KEY_CHECKS = 0');
-			$pef->delete();
+			if($pef){
+				$pef->delete();
+			}
 			$app->delete();
 			DB::statement('SET FOREIGN_KEY_CHECKS = 1');
 			return $this->getAppointmentsOfAUser($userid);

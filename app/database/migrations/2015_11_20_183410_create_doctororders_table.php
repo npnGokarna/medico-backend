@@ -17,6 +17,8 @@ class CreateDoctorordersTable extends Migration {
 			$table->string('appointment_id');
 			$table->string('symptoms');
 			$table->string('diagnosis');
+			$table->string('physical_examination');
+			$table->string('assessment');
 			$table->string('medicine_prescribed');
 			$table->timestamps();
 		});
