@@ -87,9 +87,17 @@ class DoctorordersController extends BaseController {
 	 */
 	public function show($id)
 	{
-		$doctororder = $this->doctororder->findOrFail($id);
+		$doctororder = $this->doctororder->where('appointment_id',$id)->get()->first();
+		if($doctororder){
+			$doctororder['error'] = false;
+		}
+		else{
+			$doctororder['error'] = true;
+			$doctororder['message'] = "Doctor orders not found";
+		}
+		return $doctororder;
 
-		return View::make('doctororders.show', compact('doctororder'));
+		//return View::make('doctororders.show', compact('doctororder'));
 	}
 
 	/**
